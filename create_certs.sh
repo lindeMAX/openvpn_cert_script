@@ -12,17 +12,21 @@ wdir=$(pwd)
 #Purple       0;35     Light Purple  1;35
 #Cyan         0;36     Light Cyan    1;36
 #Light Gray   0;37     White         1;37
+
+LBLUE='\033[1;34m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # We need so set some variables first
 
-echo "${RED}How do you want to name your certification agency?${NC}"
+echo "${LBLUE}How do you want to name your certification agency?${NC}"
 read ca_name
-echo "${RED}How do you want to name your VPN-Server?${NC}"
+echo "${LBLUE}How do you want to name your VPN-Server?${NC}"
 read server_name
-echo "${RED}How many client certificate-key-pairs do you want to create?${NC}"
+echo "${LBLUE}What's the server's remote address?${NC}"
+read remote_address
+echo "${LBLUE}How many client certificate-key-pairs do you want to create?${NC}"
 read num_clients
 
 # Lets create a proper directory structure first
@@ -61,9 +65,9 @@ cd certs/ca/EasyRSA-3.0.8/
 cp vars.example vars
 
 ## Wait for the user to react
-echo "${RED}You will now have to edit the CAs variables. Press Enter to continue.${NC}"
+echo "${LBLUE}You will now have to edit the CAs variables. Press Enter to continue.${NC}"
 read ""
-nvim vars
+editor vars
 
 ## Create the authority
 echo "${GREEN}Creating the certification authority...${NC}"
@@ -91,7 +95,9 @@ cp pki/reqs/server.req ${wdir}/certs/ca/
 
 ### Sign the server.req on the CA
 echo "${GREEN}Signing the server certificate with the CA...${NC}"
+
 cd ${wdir}/certs/ca/EasyRSA-3.0.8/
+
 ./easyrsa import-req ../server.req server
 cat <<-EOF | ./easyrsa sign-req server server
 yes
@@ -101,7 +107,6 @@ EOF
 echo "${GREEN}Copying the signed server certificate back to the server directory...${NC}"
 cp pki/issued/server.crt ${wdir}/certs/openvpn/server/ 
 cp pki/ca.crt ${wdir}/certs/openvpn/server/
-cp pki/ca.crt ${wdir}/certs/openvpn/clients/
 
 cd ${wdir}/certs/openvpn/EasyRSA-3.0.8/
 
@@ -109,11 +114,16 @@ echo "${GREEN}Generating Diffie-Hellman key...${NC}"
 ./easyrsa gen-dh
 cp pki/dh.pem ${wdir}/certs/openvpn/server/
 
-echo "${GREEN}Generating HMAC-Signatur..."
+echo "${GREEN}Generating HMAC-Signatur...${NC}"
 sudo openvpn --genkey secret ta.key
 sudo chown ${USER} ta.key
 cp ta.key ${wdir}/certs/openvpn/server/
-cp ta.key ${wdir}/certs/openvpn/clients/
+
+echo "${GREEN}Copying server.conf...${NC}"
+cp ${wdir}/server.conf ${wdir}/certs/openvpn/server/server.conf
+
+# Create client config directory
+mkdir ${wdir}/certs/openvpn/server/ccd
 
 ####################################
 ### Client Certificates and Keys ###
@@ -121,47 +131,43 @@ cp ta.key ${wdir}/certs/openvpn/clients/
 
 echo "${GREEN}Generating client certificates and keys..."
 
-### Create num_clients client certificates
+### Create 'num_clients' client certificates
 for i in $(seq 1 ${num_clients})
 do
-    echo "${GREEN}Client ${i}${NC}"
-    mkdir ${wdir}/certs/openvpn/clients/client${i}
-    cd ${wdir}/certs/openvpn/EasyRSA-3.0.8/
-    cat <<-EOF | ./easyrsa gen-req client${i} nopass
-    client${i}
+   echo "${GREEN}Client ${i}:${NC}"
+   mkdir ${wdir}/certs/openvpn/clients/client${i}
+   echo "${GREEN}Creating certificate and key...${NC}"
+   cd ${wdir}/certs/openvpn/EasyRSA-3.0.8/
+   cp ta.key ${wdir}/certs/openvpn/clients/client${i}
+   cat <<-EOF | ./easyrsa gen-req client${i} nopass
+   client${i}
 EOF
-    cp pki/private/client${i}.key ${wdir}/certs/openvpn/clients/client${i}/
-    cp pki/reqs/client${i}.req ${wdir}/certs/ca/
-    cd ${wdir}/certs/ca/EasyRSA-3.0.8/
-    ./easyrsa import-req ../client${i}.req client${i}
-    cat <<-EOF | ./easyrsa sign-req client client${i}
-    yes
+   echo "${GREEN}Signing certificate...${NC}"
+   cp pki/private/client${i}.key ${wdir}/certs/openvpn/clients/client${i}/
+   cp pki/reqs/client${i}.req ${wdir}/certs/ca/
+   cd ${wdir}/certs/ca/EasyRSA-3.0.8/
+   ./easyrsa import-req ../client${i}.req client${i}
+   cat <<-EOF | ./easyrsa sign-req client client${i}
+   yes
 EOF
-    cp pki/issued/client${i}.crt ${wdir}/certs/openvpn/clients/client${i}/
+   cp pki/issued/client${i}.crt ${wdir}/certs/openvpn/clients/client${i}/
+   cp pki/ca.crt ${wdir}/certs/openvpn/clients/client${i}/
+   # Place in the specified remote address and set proper client name
+   echo "${GREEN}Creating config file...${NC}"
+   cat ${wdir}/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/client${i}/g" > ${wdir}/certs/openvpn/clients/client${i}/client${i}.conf
+   cd ${wdir}/certs/openvpn/clients/client${i}
+   # Remove txqueuelen parameter for windows configuration
+   cat client${i}.conf | sed 's/txqueuelen 1000//g' > client${i}.ovpn
+   # Zip compress the client's directory
+   echo "${GREEN}Creating .zip archive...${NC}"
+   cd ../
+   zip client${i}.zip -r client${i}
+   echo "${GREEN}Cleaning up...${NC}"
+   rm -r client${i}
+   # Push route settings to server.conf and ccd
+   ip=$(expr 100 + ${i})
+   echo "ifconfig-push 10.8.0.${ip} 255.255.255.0" >${wdir}/certs/openvpn/server/ccd/client${i}
+   echo "route 10.8.0.${ip} 255.255.255.0" >> ${wdir}/certs/openvpn/server/server.conf
 done
 
-##############################
-### Script for new clients ###
-##############################
-
-cd ${wdir}/certs/
-
-cat > add_client <<-EOF
-echo "${GREEN}What's the clients name?${NC}"
-read client_name
-mkdir openvpn/clients/c_name/
-cd openvpn/EasyRSA-3.0.8/
-./easyrsa gen-req c_name nopass
-cp pki/reqs/c_name.req ../../ca/
-cp pki/private/c_name.key ../clients/c_name/
-cd ../../ca/EasyRSA-3.0.8/
-./easyrsa import-req ../c_name.req c_name
-./easyrsa sign-req client c_name
-cp pki/issued/c_name.crt ../../openvpn/clients/c_name/
-EOF
-
-sed 's/c_name/${client_name}/g' add_client > add_client.sh
-rm add_client
-chmod +x add_client.sh
-
-echo "${GREEN}Done!${NC}"
+echo "${GREEN}DONE!${NC}"
