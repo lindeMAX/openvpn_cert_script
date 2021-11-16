@@ -1,6 +1,6 @@
-#  #
+# openvpn_cert_script #
 
-*create_certs.sh* will create a complete certification infrastructure for you.
+*create_certs.sh* will create all certificates and keys needed for openvpn.
 
 - Certification Authority
 - Server certificats and keys
