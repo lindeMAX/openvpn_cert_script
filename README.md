@@ -32,18 +32,18 @@ certs
     |   ...
     |
     +---clients
-    |   +--ca.crt
-    |   +--ta.key
-    |
-    +---client1
-    |   +---client1.crt
-    |   +---client1.key
-    ...
-    |---clientXX
-    |   +---clientXX.crt
-    |   +---clientXX.key
-    |
-    +---hugo
-        +---hugo.crt
-        +---hugo.key 
+        +--ca.crt
+        +--ta.key
+        |
+        +---client1
+        |   +---client1.crt
+        |   +---client1.key
+        ...
+        |---clientXX
+        |   +---clientXX.crt
+        |   +---clientXX.key
+        |
+        +---hugo
+            +---hugo.crt
+            +---hugo.key 
 ```
