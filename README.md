@@ -3,8 +3,8 @@
 *create_certs.sh* will create all certificates and keys needed for openvpn.
 
 - Certification Authority
-- Server certificats and keys
-- Client certificats and keys
+- Server certificate and key
+- Client certificates and keys
 
 It will ask you for the name of the ca, the vpn-server and how many client certificates/keys you want to create.
 
