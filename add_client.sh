@@ -14,25 +14,25 @@ echo "${LBLUE}Which IP should the client get assigned to?${NC}"
 echo "${LBLUE}Do only provide the last number (10.8.0.X)!${NC}"
 read client_ip
 
-mkdir ${wdir}/certs/openvpn/clients/${client_name}
+mkdir ${wdir}/output/openvpn/clients/${client_name}
 
 echo "${GREEN}Creating certificate and key...${NC}"
 
-cd ${wdir}/certs/openvpn/EasyRSA-3.0.8/
+cd ${wdir}/output/openvpn/EasyRSA-3.0.8/
 
-cp ta.key ${wdir}/certs/openvpn/clients/${client_name}
+cp ta.key ${wdir}/output/openvpn/clients/${client_name}
 
 cat <<-EOF | ./easyrsa gen-req ${client_name} nopass
 ${client_name}
 EOF
 
-cp pki/private/${client_name}.key ${wdir}/certs/openvpn/clients/${client_name}/
+cp pki/private/${client_name}.key ${wdir}/output/openvpn/clients/${client_name}/
 
-cp pki/reqs/${client_name}.req ${wdir}/certs/ca/
+cp pki/reqs/${client_name}.req ${wdir}/output/ca/
 
 echo "${GREEN}Signing certificate...${NC}"
 
-cd ${wdir}/certs/ca/EasyRSA-3.0.8/
+cd ${wdir}/output/ca/EasyRSA-3.0.8/
 
 ./easyrsa import-req ../${client_name}.req ${client_name}
 
@@ -40,16 +40,16 @@ cat <<-EOF | ./easyrsa sign-req client ${client_name}
 yes
 EOF
 
-cp pki/issued/${client_name}.crt ${wdir}/certs/openvpn/clients/${client_name}/
+cp pki/issued/${client_name}.crt ${wdir}/output/openvpn/clients/${client_name}/
 
-cp pki/ca.crt ${wdir}/certs/openvpn/clients/${client_name}/
+cp pki/ca.crt ${wdir}/output/openvpn/clients/${client_name}/
 
 echo "${GREEN}Creating config file...${NC}"
 
 # Place in the specified remote address and set proper client name
-cat ${wdir}/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/${client_name}/g" > ${wdir}/certs/openvpn/clients/${client_name}/${client_name}.conf
+cat ${wdir}/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/${client_name}/g" > ${wdir}/output/openvpn/clients/${client_name}/${client_name}.conf
 
-cd ${wdir}/certs/openvpn/clients/${client_name}
+cd ${wdir}/output/openvpn/clients/${client_name}
 
 # Remove txqueuelen parameter for windows configuration
 cat ${client_name}.conf | sed 's/txqueuelen 1000//g' > ${client_name}.ovpn
@@ -63,7 +63,7 @@ echo "${GREEN}Cleaning up...${NC}"
 rm -r ${client_name}
 
 # Push route settings to server.conf and ccd
-echo "ifconfig-push 10.8.0.${client_ip} 255.255.255.0" >${wdir}/certs/openvpn/server/ccd/${client_name}
-echo "route 10.8.0.${client_ip} 255.255.255.0" >> ${wdir}/certs/openvpn/server/server.conf
+echo "ifconfig-push 10.8.0.${client_ip} 255.255.255.0" >${wdir}/output/openvpn/server/ccd/${client_name}
+echo "route 10.8.0.${client_ip} 255.255.255.0" >> ${wdir}/output/openvpn/server/server.conf
 
 echo "${GREEN}DONE!${NC}"

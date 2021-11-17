@@ -1,6 +1,6 @@
 # openvpn_cert_script #
 
-*create_certs.sh* creates all certificates and keys needed for openvpn (using EasyRSA v3.0.8) alongside with the config files and directory tree needed on the server and client side.
+*create_certs.sh* creates all certificates and keys needed for [openvpn](https://openvpn.net/) (using EasyRSA v3.0.8) alongside with the config files and directory tree needed on the server and client side.
 
 It will ask you for the name of the ca, the vpn-server, it's remote address and how many client certificates/keys you want to create.
 A zip compressed directory is then assambled for each individual client.
@@ -10,7 +10,7 @@ clientXX.zip
     +---clientXX.crt
     +---clientXX.key
     +---clientXX.conf
-    +---client.ovpn
+    +---clientXX.ovpn
     +---ta.key
     +---ca.crt
 ```
@@ -24,8 +24,7 @@ You can choose a specific IP for each client added individually afterwards.
 The directory stucture will look loke this:
 
 ```
-certs
-+---add_client.sh
+output
 |
 +---ca
 |   +---...
@@ -53,6 +52,9 @@ certs
         +---hugo.zip
 ```
 
+## Dependencies ##
+- openvpn (2.5.1-3)
+
 ## config files ##
 
 - tap 
@@ -60,7 +62,17 @@ certs
 - mtu of 1492 to work properly over DSL with PPPoE
 - ...
 
-Feel free to edit, to suit your needs.
+Feel free to edit to make it suit your needs.
 
-## Dependencies ##
-- openvpn
+## openvpn server ##
+
+Just copy *output/openvpn/server* to */etc/openvpn/* and start the systemd service:
+
+```Bash
+systemctl enable openvpn-server@server.service
+systemctl start openvpn-server@server.service
+```
+
+## openvpn client ##
+
+Similar to the server.
