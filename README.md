@@ -15,10 +15,10 @@ clientXX.zip
     +---ca.crt
 ```
 
-The server.conf is configured in this way, that each client will get it's own IP-address, beginning with *10.8.0.101*.
-Therefore the client config directory (ccd) gets created.
+The server.conf is edited in a way, that each client will get it's own IP-address, beginning with *10.8.0.101*.
+Therefore the client config directory (ccd) is created, too.
 
-There is also script (*add_client.sh*) to add more clients afterwards (e.g. hugo).
+There is also *add_client.sh* to add more clients afterwards (e.g. hugo).<br>
 You can choose a specific IP for each client added individually afterwards.
 
 The directory stucture will look loke this:
