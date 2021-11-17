@@ -104,7 +104,6 @@ yes
 EOF
 
 ### Copy the signed server certificate and the ca.crt back to the server directoy
-echo "${GREEN}Copying the signed server certificate back to the server directory...${NC}"
 cp pki/issued/server.crt ${wdir}/certs/openvpn/server/ 
 cp pki/ca.crt ${wdir}/certs/openvpn/server/
 
@@ -119,7 +118,6 @@ sudo openvpn --genkey secret ta.key
 sudo chown ${USER} ta.key
 cp ta.key ${wdir}/certs/openvpn/server/
 
-echo "${GREEN}Copying server.conf...${NC}"
 cp ${wdir}/server.conf ${wdir}/certs/openvpn/server/server.conf
 
 # Create client config directory

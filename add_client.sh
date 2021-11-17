@@ -10,6 +10,9 @@ wdir=$(pwd)
 
 echo "${LBLUE}What's the clients name?${NC}"
 read client_name
+echo "${LBLUE}Which IP should the client get assigned to?${NC}"
+echo "${LBLUE}Do only provide the last number (10.8.0.X)!${NC}"
+read client_ip
 
 mkdir ${wdir}/certs/openvpn/clients/${client_name}
 
@@ -59,12 +62,8 @@ zip ${client_name}.zip -r ${client_name}
 echo "${GREEN}Cleaning up...${NC}"
 rm -r ${client_name}
 
-# Create client config directory
-mkdir ${wdir}certs/openvpn/server/ccd/client${i}
 # Push route settings to server.conf and ccd
-ip=$(expr 100 + ${i})
-echo "ifconfig-push 10.8.0.${ip} 255.255.255.0" >${wdir}/certs/openvpn/server/ccd/client${i}
-echo "route 10.8.0.${ip} 255.255.255.0" >> ${wdir}certs/openvpn/server/server.conf
-
+echo "ifconfig-push 10.8.0.${client_ip} 255.255.255.0" >${wdir}/certs/openvpn/server/ccd/${client_name}
+echo "route 10.8.0.${client_ip} 255.255.255.0" >> ${wdir}/certs/openvpn/server/server.conf
 
 echo "${GREEN}DONE!${NC}"

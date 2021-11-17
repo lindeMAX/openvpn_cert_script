@@ -1,14 +1,25 @@
 # openvpn_cert_script #
 
-*create_certs.sh* will create all certificates and keys needed for openvpn.
+*create_certs.sh* creates all certificates and keys needed for openvpn (using EasyRSA v3.0.8) alongside with the config files and directory tree needed on the server and client side.
 
-- Certification Authority
-- Server certificate and key
-- Client certificates and keys
+It will ask you for the name of the ca, the vpn-server, it's remote address and how many client certificates/keys you want to create.
+A zip compressed directory is then assambled for each individual client.
 
-It will ask you for the name of the ca, the vpn-server and how many client certificates/keys you want to create.
+```
+clientXX.zip
+    +---clientXX.crt
+    +---clientXX.key
+    +---clientXX.conf
+    +---client.ovpn
+    +---ta.key
+    +---ca.crt
+```
 
-In addition to that, another script (*add_client.sh*) will be created to add more clients afterwards (e.g. hugo).
+The server.conf is configured in this way, that each client will get it's own IP-address, beginning with *10.8.0.101*.
+Therefore the client config directory (ccd) gets created.
+
+There is also script (*add_client.sh*) to add more clients afterwards (e.g. hugo).
+You can choose a specific IP for each client added individually afterwards.
 
 The directory stucture will look loke this:
 
@@ -22,28 +33,34 @@ certs
 |
 +---openvpn
     |
+    +...
+    |
     +---server
     |   +---ta.key
     |   +---ca.crt
     |   +---dh.pem
     |   +---server.crt
     |   +---server.key
+    |   +---server.conf
     |   |
-    |   ...
+    |   +---ccd/
     |
     +---clients
-        +--ca.crt
-        +--ta.key
         |
-        +---client1
-        |   +---client1.crt
-        |   +---client1.key
+        +---client1.zip
         ...
-        |---clientXX
-        |   +---clientXX.crt
-        |   +---clientXX.key
-        |
-        +---hugo
-            +---hugo.crt
-            +---hugo.key 
+        +---clientXX.zip
+        +---hugo.zip
 ```
+
+## config files ##
+
+- tap 
+- client to client
+- mtu of 1492 to work properly over DSL with PPPoE
+- ...
+
+Feel free to edit, to suit your needs.
+
+## Dependencies ##
+- openvpn
