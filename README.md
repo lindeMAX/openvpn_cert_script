@@ -1,6 +1,6 @@
 # openvpn_setup_script #
 
-*create_certs.sh* creates all certificates and keys needed for [openvpn](https://openvpn.net/) (using EasyRSA v3.0.8) alongside with the config files and directory tree needed on the server and client side.
+*openvpn_setup.sh* creates all certificates and keys needed for [openvpn](https://openvpn.net/) (using EasyRSA v3.0.8) alongside with the config files and directory tree needed on the server and client side.
 
 It will ask you for the name of the ca, the vpn-server, it's remote address and how many client certificates/keys you want to create.
 A zip compressed directory is then assambled for each individual client.
