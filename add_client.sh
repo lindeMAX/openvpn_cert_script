@@ -10,9 +10,12 @@ wdir=$(pwd)
 
 echo "${LBLUE}What's the clients name?${NC}"
 read client_name
+
 echo "${LBLUE}Which IP should the client get assigned to?${NC}"
 echo "${LBLUE}Do only provide the last number (10.8.0.X)!${NC}"
 read client_ip
+
+remote_address=$(cat output/openvpn/server/remote_address.txt)
 
 mkdir ${wdir}/output/openvpn/clients/${client_name}
 
@@ -64,6 +67,6 @@ rm -r ${client_name}
 
 # Push route settings to server.conf and ccd
 echo "ifconfig-push 10.8.0.${client_ip} 255.255.255.0" >${wdir}/output/openvpn/server/ccd/${client_name}
-echo "route 10.8.0.${client_ip} 255.255.255.0" >> ${wdir}/output/openvpn/server/server.conf
+#echo "route 10.8.0.${client_ip} 255.255.255.0" >> ${wdir}/output/openvpn/server/server.conf
 
 echo "${GREEN}DONE!${NC}"

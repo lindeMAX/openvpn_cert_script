@@ -8,26 +8,29 @@ NC='\033[0m' # No Color
 # The working directory
 wdir=$(pwd)
 
+# Lets create a proper directory structure first
+
+echo "${GREEN}Creating directory Sturcture...${NC}"
+mkdir ${wdir}/output
+mkdir ${wdir}/output/ca
+mkdir ${wdir}/output/openvpn
+mkdir ${wdir}/output/openvpn/server
+mkdir ${wdir}/output/openvpn/clients
+
 # We need so set some variables first
 
 echo "${LBLUE}How do you want to name your certification agency?${NC}"
 read ca_name
+
 echo "${LBLUE}How do you want to name your VPN-Server?${NC}"
 read server_name
+
 echo "${LBLUE}What's the server's remote address?${NC}"
 read remote_address
+echo "${remote_address}" > ${wdir}/output/openvpn/server/remote_address.txt
+
 echo "${LBLUE}How many client certificate-key-pairs do you want to create?${NC}"
 read num_clients
-
-# Lets create a proper directory structure first
-
-echo "${GREEN}Creating directory Sturcture...${NC}"
-mkdir output
-mkdir output/ca
-mkdir output/openvpn
-mkdir output/openvpn/server
-mkdir output/openvpn/clients
-
 
 # Get the latest easyrsa files and extract them
 echo "${GREEN} ${NC}"
@@ -128,7 +131,7 @@ do
    cd ${wdir}/output/openvpn/EasyRSA-3.0.8/
    cp ta.key ${wdir}/output/openvpn/clients/client${i}
    cat <<-EOF | ./easyrsa gen-req client${i} nopass
-   client${i}
+client${i}
 EOF
    echo "${GREEN}Signing certificate...${NC}"
    cp pki/private/client${i}.key ${wdir}/output/openvpn/clients/client${i}/
@@ -136,7 +139,7 @@ EOF
    cd ${wdir}/output/ca/EasyRSA-3.0.8/
    ./easyrsa import-req ../client${i}.req client${i}
    cat <<-EOF | ./easyrsa sign-req client client${i}
-   yes
+yes
 EOF
    cp pki/issued/client${i}.crt ${wdir}/output/openvpn/clients/client${i}/
    cp pki/ca.crt ${wdir}/output/openvpn/clients/client${i}/
@@ -155,7 +158,7 @@ EOF
    # Push route settings to server.conf and ccd
    ip=$(expr 100 + ${i})
    echo "ifconfig-push 10.8.0.${ip} 255.255.255.0" >${wdir}/output/openvpn/server/ccd/client${i}
-   echo "route 10.8.0.${ip} 255.255.255.0" >> ${wdir}/output/openvpn/server/server.conf
+   #echo "route 10.8.0.${ip} 255.255.255.0" >> ${wdir}/output/openvpn/server/server.conf
 done
 
 echo "${GREEN}DONE!${NC}"
