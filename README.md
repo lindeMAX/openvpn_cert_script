@@ -19,9 +19,9 @@ The server.conf is edited in a way, that each client will get it's own IP-addres
 Therefore the client config directory (ccd) is created, too.
 
 There is also *add_client.sh* to add more clients afterwards (e.g. hugo).<br>
-You can choose a specific IP for each client added individually afterwards.
+You can choose a specific IP for each client added afterwards individually.
 
-The directory stucture will look loke this:
+The directory stucture will look like this:
 
 ```
 output
