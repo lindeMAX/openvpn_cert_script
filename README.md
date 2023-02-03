@@ -53,14 +53,10 @@ output
 ```
 
 ## Dependencies ##
+
 - openvpn (2.5.1-3)
 
 ## config files ##
-
-- tap 
-- client to client
-- mtu of 1492 to work properly over DSL with PPPoE
-- ...
 
 Feel free to edit to make it suit your needs.
 
