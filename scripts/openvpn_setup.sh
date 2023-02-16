@@ -159,7 +159,7 @@ EOF
    # Push route settings to server.conf and ccd
    ip=$(expr 100 + ${i})
    echo "ifconfig-push 10.8.0.${ip} 255.255.255.0" >${wdir}/output/openvpn/server/ccd/client${i}
-   #echo "route 10.8.0.${ip} 255.255.255.0" >> ${wdir}/output/openvpn/server/server.conf
+   echo "route 10.8.0.${ip} 255.255.255.0" >> ${wdir}/output/openvpn/server/server.conf
 done
 
 echo "${GREEN}DONE!${NC}"

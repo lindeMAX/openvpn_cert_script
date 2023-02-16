@@ -54,6 +54,8 @@ output
 
 ## Dependencies ##
 
+- zip
+- unzip
 - zsh
 - openvpn (2.5.1-3)
 
