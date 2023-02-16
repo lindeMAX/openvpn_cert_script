@@ -6,7 +6,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # The working directory
-wdir=$(pwd)
+wdir="$(pwd)/.."
 
 echo "${LBLUE}What's the clients name?${NC}"
 read client_name
@@ -50,7 +50,7 @@ cp pki/ca.crt ${wdir}/output/openvpn/clients/${client_name}/
 echo "${GREEN}Creating config file...${NC}"
 
 # Place in the specified remote address and set proper client name
-cat ${wdir}/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/${client_name}/g" > ${wdir}/output/openvpn/clients/${client_name}/${client_name}.conf
+cat ${wdir}/conf/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/${client_name}/g" > ${wdir}/output/openvpn/clients/${client_name}/${client_name}.conf
 
 cd ${wdir}/output/openvpn/clients/${client_name}
 

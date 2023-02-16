@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 LBLUE='\033[1;34m'
 GREEN='\033[0;32m'
@@ -6,7 +6,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # The working directory
-wdir=$(pwd)
+wdir="$(pwd)/.."
 
 # Lets create a proper directory structure first
 
@@ -25,7 +25,7 @@ read ca_name
 echo "${LBLUE}How do you want to name your VPN-Server?${NC}"
 read server_name
 
-echo "${LBLUE}What's the server's remote address?${NC}"
+echo "${LBLUE}What's the server's remote address (URL or IP)?${NC}"
 read remote_address
 echo "${remote_address}" > ${wdir}/output/openvpn/server/remote_address.txt
 
@@ -41,8 +41,8 @@ echo "${GREEN}Extracting...${NC}"
 tar xvf EasyRSA-3.0.8.tgz
 
 echo "${GREEN}Creating CA and and OpenVPN EasyRSA-Instacne${NC}"
-cp -R EasyRSA-3.0.8/ output/ca/
-cp -R EasyRSA-3.0.8/ output/openvpn/
+cp -R EasyRSA-3.0.8/ ${wdir}/output/ca/
+cp -R EasyRSA-3.0.8/ ${wdir}/output/openvpn/
 
 echo "${GREEN}Cleaning up...${NC}"
 rm -r EasyRSA-3.0.8/
@@ -54,18 +54,19 @@ rm EasyRSA-3.0.8.tgz
 
 echo "${GREEN}Doing the CA stuff...${NC}"
 
-cd output/ca/EasyRSA-3.0.8/
+cd ${wdir}/output/ca/EasyRSA-3.0.8/
 cp vars.example vars
 
-## Wait for the user to react
 echo "${LBLUE}You will now have to edit the CAs variables. Press Enter to continue.${NC}"
-read ""
-editor vars
+## Wait for the user to react
+read
+editor vars || $EDITOR vars || nano vars || vi vars || vim vars || nvim vars
 
 ## Create the authority
 echo "${GREEN}Creating the certification authority...${NC}"
 ./easyrsa init-pki
-echo "${RED}You can leave the 'Common Name' empty${NC}"
+
+# echo "${RED}You can leave the 'Common Name' empty${NC}"
 cat <<-EOF | ./easyrsa build-ca nopass
 ${ca_name}
 EOF
@@ -86,7 +87,7 @@ EOF
 cp pki/private/server.key ../server/
 cp pki/reqs/server.req ${wdir}/output/ca/
 
-### Sign the server.req on the CA
+## Sign the server.req on the CA
 echo "${GREEN}Signing the server certificate with the CA...${NC}"
 
 cd ${wdir}/output/ca/EasyRSA-3.0.8/
@@ -96,7 +97,7 @@ cat <<-EOF | ./easyrsa sign-req server server
 yes
 EOF
 
-### Copy the signed server certificate and the ca.crt back to the server directoy
+## Copy the signed server certificate and the ca.crt back to the server directoy
 cp pki/issued/server.crt ${wdir}/output/openvpn/server/ 
 cp pki/ca.crt ${wdir}/output/openvpn/server/
 
@@ -111,9 +112,9 @@ sudo openvpn --genkey secret ta.key
 sudo chown ${USER} ta.key
 cp ta.key ${wdir}/output/openvpn/server/
 
-cp ${wdir}/server.conf ${wdir}/output/openvpn/server/server.conf
+cp ${wdir}/conf/server.conf ${wdir}/output/openvpn/server/server.conf
 
-# Create client config directory
+## Create client config directory
 mkdir ${wdir}/output/openvpn/server/ccd
 
 ####################################
@@ -145,7 +146,7 @@ EOF
    cp pki/ca.crt ${wdir}/output/openvpn/clients/client${i}/
    # Place in the specified remote address and set proper client name
    echo "${GREEN}Creating config file...${NC}"
-   cat ${wdir}/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/client${i}/g" > ${wdir}/output/openvpn/clients/client${i}/client${i}.conf
+   cat ${wdir}/conf/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/client${i}/g" > ${wdir}/output/openvpn/clients/client${i}/client${i}.conf
    cd ${wdir}/output/openvpn/clients/client${i}
    # Remove txqueuelen parameter for windows configuration
    cat client${i}.conf | sed 's/txqueuelen 1000//g' > client${i}.ovpn
