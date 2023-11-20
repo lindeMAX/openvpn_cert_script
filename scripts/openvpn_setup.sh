@@ -6,7 +6,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # The working directory
-wdir="$(pwd)/.."
+wdir="$(pwd)"
 
 # Lets create a proper directory structure first
 
@@ -20,6 +20,7 @@ mkdir ${wdir}/output/openvpn/clients
 # We need so set some variables first
 
 echo "${LBLUE}How do you want to name your certification agency?${NC}"
+echo "This will be the master CA which is used to sign the clients and sevrers certificates"
 read ca_name
 
 echo "${LBLUE}How do you want to name your VPN-Server?${NC}"
@@ -32,29 +33,31 @@ echo "${remote_address}" > ${wdir}/output/openvpn/server/remote_address.txt
 echo "${LBLUE}How many client certificate-key-pairs do you want to create?${NC}"
 read num_clients
 
-# Get the latest easyrsa files and extract them
+# Get the easyrsa files and extract them
 echo "${GREEN} ${NC}"
 echo "${GREEN}Downloading EasyRSA...${NC}"
-wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.8/EasyRSA-3.0.8.tgz
+wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.7/EasyRSA-3.1.7.tgz
 
 echo "${GREEN}Extracting...${NC}"
-tar xvf EasyRSA-3.0.8.tgz
+tar xvf EasyRSA-3.1.7.tgz
+mv EasyRSA-3.1.7.tgz EasyRSA.tgz
+mv EasyRSA-3.1.7 EasyRSA
 
 echo "${GREEN}Creating CA and and OpenVPN EasyRSA-Instacne${NC}"
-cp -R EasyRSA-3.0.8/ ${wdir}/output/ca/
-cp -R EasyRSA-3.0.8/ ${wdir}/output/openvpn/
+cp -R EasyRSA/ ${wdir}/output/ca/
+cp -R EasyRSA/ ${wdir}/output/openvpn/
 
 echo "${GREEN}Cleaning up...${NC}"
-rm -r EasyRSA-3.0.8/
-rm EasyRSA-3.0.8.tgz
+rm -r EasyRSA/
+rm EasyRSA.tgz
 
 ###############################
 ### Certification Authority ###
 ###############################
 
-echo "${GREEN}Doing the CA stuff...${NC}"
+echo "${GREEN}Creating Master CA...${NC}"
 
-cd ${wdir}/output/ca/EasyRSA-3.0.8/
+cd ${wdir}/output/ca/EasyRSA/
 cp vars.example vars
 
 echo "${LBLUE}You will now have to edit the CAs variables. Press Enter to continue.${NC}"
@@ -77,7 +80,7 @@ EOF
 
 echo "${GREEN}Creating Server Certificate and Key...${NC}"
 
-cd ${wdir}/output/openvpn/EasyRSA-3.0.8/
+cd ${wdir}/output/openvpn/EasyRSA/
 
 ./easyrsa init-pki
 cat <<-EOF | ./easyrsa gen-req server nopass
@@ -90,7 +93,7 @@ cp pki/reqs/server.req ${wdir}/output/ca/
 ## Sign the server.req on the CA
 echo "${GREEN}Signing the server certificate with the CA...${NC}"
 
-cd ${wdir}/output/ca/EasyRSA-3.0.8/
+cd ${wdir}/output/ca/EasyRSA/
 
 ./easyrsa import-req ../server.req server
 cat <<-EOF | ./easyrsa sign-req server server
@@ -101,7 +104,7 @@ EOF
 cp pki/issued/server.crt ${wdir}/output/openvpn/server/ 
 cp pki/ca.crt ${wdir}/output/openvpn/server/
 
-cd ${wdir}/output/openvpn/EasyRSA-3.0.8/
+cd ${wdir}/output/openvpn/EasyRSA/
 
 echo "${GREEN}Generating Diffie-Hellman key...${NC}"
 ./easyrsa gen-dh
@@ -129,7 +132,7 @@ do
    echo "${GREEN}Client ${i}:${NC}"
    mkdir ${wdir}/output/openvpn/clients/client${i}
    echo "${GREEN}Creating certificate and key...${NC}"
-   cd ${wdir}/output/openvpn/EasyRSA-3.0.8/
+   cd ${wdir}/output/openvpn/EasyRSA/
    cp ta.key ${wdir}/output/openvpn/clients/client${i}
    cat <<-EOF | ./easyrsa gen-req client${i} nopass
 client${i}
@@ -137,7 +140,7 @@ EOF
    echo "${GREEN}Signing certificate...${NC}"
    cp pki/private/client${i}.key ${wdir}/output/openvpn/clients/client${i}/
    cp pki/reqs/client${i}.req ${wdir}/output/ca/
-   cd ${wdir}/output/ca/EasyRSA-3.0.8/
+   cd ${wdir}/output/ca/EasyRSA/
    ./easyrsa import-req ../client${i}.req client${i}
    cat <<-EOF | ./easyrsa sign-req client client${i}
 yes
