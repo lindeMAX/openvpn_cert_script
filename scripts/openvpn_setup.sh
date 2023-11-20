@@ -149,7 +149,7 @@ EOF
    cp pki/ca.crt ${wdir}/output/openvpn/clients/client${i}/
    # Place in the specified remote address and set proper client name
    echo "${GREEN}Creating config file...${NC}"
-   cat ${wdir}/conf/client.conf | sed "s/remote_address/${remote_address}/g" | sed "s/c_name/client${i}/g" > ${wdir}/output/openvpn/clients/client${i}/client${i}.conf
+   cat ${wdir}/conf/client.conf | sed "s/my-server-1/${remote_address}/g" | sed "s/c_name/client${i}/g" > ${wdir}/output/openvpn/clients/client${i}/client${i}.conf
    cd ${wdir}/output/openvpn/clients/client${i}
    # Remove txqueuelen parameter for windows configuration
    cat client${i}.conf | sed 's/txqueuelen 1000//g' > client${i}.ovpn
